@@ -1,5 +1,5 @@
 from pathlib import Path
-import pymupdf
+from pypdf import PdfReader
 
 
 def load_pdf(file_path: str | Path):
@@ -18,25 +18,28 @@ def load_pdf(file_path: str | Path):
     documents = []
 
     try:
-        with pymupdf.open(path) as pdf:
+        reader = PdfReader(path)
 
-            if pdf.is_encrypted:
-                raise ValueError("Encrypted PDFs are not supported.")
+        if reader.is_encrypted:
+            raise ValueError("Encrypted PDFs are not supported.")
 
-            for page_index, page in enumerate(pdf):
+        total_pages = len(reader.pages)
 
-                raw_text = page.get_text("text", sort=True).strip()
+        for page_index, page in enumerate(reader.pages):
 
-                documents.append({
-                                "text": raw_text,
-                                "metadata": {
-                                    "source": str(path.resolve()),
-                                    "file_name": path.name,
-                                    "page": page_index + 1,
-                                    "total_pages": pdf.page_count,
-                                    "status": "extracted" if raw_text else "empty",
-                                    "char_count": len(raw_text),}
-                                },)
+            raw_text = (page.extract_text() or "").strip()
+
+            documents.append({
+                "text": raw_text,
+                "metadata": {
+                    "source": str(path.resolve()),
+                    "file_name": path.name,
+                    "page": page_index + 1,
+                    "total_pages": total_pages,
+                    "status": "extracted" if raw_text else "empty",
+                    "char_count": len(raw_text),
+                }
+            })
 
     except (FileNotFoundError, ValueError):
         raise
@@ -48,3 +51,7 @@ def load_pdf(file_path: str | Path):
 
     return documents
 
+
+if __name__ == "__main__":
+    res = load_pdf("data/pdfs/RAG.pdf")
+    print(res)
