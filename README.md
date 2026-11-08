@@ -1,7 +1,7 @@
 # Persian RAG | Persian Document Question Answering System
 
 <p align="center">
-  **A Retrieval-Augmented Generation (RAG) application for querying Persian PDF documents.**
+  <strong>A Retrieval-Augmented Generation application for querying Persian PDF documents.</strong>
 </p>
 
 <p align="center">
@@ -16,30 +16,38 @@
 
 ## Overview
 
-**Persian RAG** is a Retrieval-Augmented Generation (RAG) application that enables users to ask questions about Persian PDF documents and receive context-aware answers.
+**Persian RAG** is a Retrieval-Augmented Generation (RAG) application that allows users to ask questions about Persian PDF documents and receive context-aware answers based on their contents.
 
-Instead of relying only on the language model's internal knowledge, the system retrieves relevant passages from the provided documents and uses them as context to generate answers.
+Instead of relying solely on the language model's internal knowledge, the application retrieves relevant information from the provided documents and uses it as context to generate more relevant and source-grounded responses.
 
-The project uses an API-based embedding model and an OpenAI-compatible Large Language Model (LLM), with ChromaDB as its vector database.
+The system integrates an external embedding API, an OpenAI-compatible Large Language Model (LLM), and ChromaDB as its vector database.
+
+## Application Preview
+
+<p align="center">
+  <img src="docs/persian-rag-ui.png" alt="Persian RAG application interface" width="850">
+</p>
 
 ## Key Features
 
-- **Persian PDF Processing:** Extracts text and metadata from PDF documents.
+- **Persian PDF Processing:** Extracts text and metadata from Persian PDF documents.
 - **Text Normalization:** Normalizes Persian characters, digits, punctuation, and whitespace.
-- **Text Chunking:** Splits documents into smaller, overlapping chunks for better retrieval.
-- **API-based Embeddings:** Converts text chunks into vector representations using an external embedding API.
-- **Vector Storage:** Stores embeddings and metadata in ChromaDB.
+- **Text Chunking:** Splits documents into smaller, overlapping chunks.
+- **API-based Embeddings:** Converts text chunks into vector representations using an external embedding service.
+- **Vector Storage:** Stores embeddings, text chunks, and metadata in ChromaDB.
 - **Semantic Retrieval:** Retrieves relevant document chunks based on the user's question.
-- **Context-aware Generation:** Generates answers using retrieved information and an LLM.
-- **Source Tracking:** Preserves document and page metadata to identify retrieved sources.
-- **Interactive Interface:** Provides a Persian-friendly interface using Streamlit.
-- **Docker Support:** Simplifies deployment and environment setup with Docker Compose.
+- **Context-aware Generation:** Generates answers using retrieved document content and an LLM.
+- **Source Tracking:** Preserves document names and page numbers for retrieved information.
+- **Interactive Interface:** Provides a Persian-friendly user interface using Streamlit.
+- **Docker Support:** Simplifies deployment and execution using Docker Compose.
 
 ## Architecture
 
 The application consists of two main workflows: document ingestion and question answering.
 
 ### 1. Document Ingestion Pipeline
+
+PDF documents are processed, converted into vector representations, and stored in ChromaDB.
 
 ```mermaid
 flowchart TD
@@ -54,30 +62,32 @@ flowchart TD
 
 ### 2. Question Answering Pipeline
 
+When a user submits a question, the system retrieves relevant chunks and sends them to the LLM along with the original question.
+
 ```mermaid
 flowchart TD
-    A[User Question] --> B[Question Embedding]
-    B --> C[ChromaDB Retrieval]
-    C --> D[Relevant Chunks]
-    D --> E[Context Construction]
-    E --> F[LLM API]
-    A --> F
-    F --> G[Generated Answer]
-    G --> H[Streamlit Interface]
+    A[User Question] --> B[Embedding API]
+    B --> C[Question Vector]
+    C --> D[ChromaDB Retrieval]
+    D --> E[Relevant Chunks]
+    E --> F[Context Construction]
+    F --> G[LLM API]
+    A --> G
+    G --> H[Generated Answer]
+    H --> I[Streamlit Interface]
 ```
 
 ## Technology Stack
 
 | Technology | Purpose |
 |---|---|
-| Python | Core programming language |
+| Python 3.14 | Core programming language |
 | pypdf | PDF text extraction |
 | Piraye | Persian text normalization |
 | LangChain Text Splitters | Recursive text chunking |
 | OpenAI Python SDK | Communication with the LLM API |
-| Requests | HTTP communication with the embedding API |
 | ChromaDB | Vector database and similarity search |
-| Streamlit | User interface |
+| Streamlit | Interactive user interface |
 | Docker | Application containerization |
 | Docker Compose | Application deployment and configuration |
 
@@ -88,6 +98,9 @@ Persian_RAG/
 │
 ├── data/
 │   └── pdfs/                  # Input Persian PDF documents
+│
+├── docs/
+│   └── persian-rag-ui.png     # Application screenshot
 │
 ├── src/
 │   ├── __init__.py
@@ -114,11 +127,12 @@ Persian_RAG/
 ### Document Ingestion
 
 1. PDF files are loaded from the `data/pdfs/` directory.
-2. Text is extracted page by page, along with metadata such as filename and page number.
-3. Extracted text is normalized to improve Persian text consistency.
-4. Documents are divided into overlapping chunks.
-5. Each chunk is sent to the embedding API to obtain its vector representation.
-6. Embeddings, text chunks, and associated metadata are stored in ChromaDB.
+2. Text is extracted page by page using pypdf.
+3. Metadata such as filename and page number is preserved.
+4. Extracted text is normalized to improve Persian text consistency.
+5. Documents are divided into smaller, overlapping chunks.
+6. Each chunk is sent to the embedding API to obtain its vector representation.
+7. Embeddings, text chunks, and associated metadata are stored in ChromaDB.
 
 ### Question Answering
 
@@ -126,8 +140,9 @@ Persian_RAG/
 2. The question is converted into an embedding using the embedding API.
 3. ChromaDB searches for semantically similar document chunks.
 4. Retrieved chunks are assembled into a context.
-5. The question and retrieved context are sent to the LLM.
-6. The generated answer and available source information are displayed in the Streamlit interface.
+5. The original question and retrieved context are sent to the LLM.
+6. The LLM generates a context-aware answer.
+7. The answer and available source information are displayed in the Streamlit interface.
 
 ## Installation and Setup
 
@@ -135,8 +150,8 @@ Persian_RAG/
 
 - Python 3.14
 - Git
-- Docker Desktop (for Docker deployment)
 - Access to the required LLM and embedding APIs
+- Docker Desktop (for Docker deployment)
 
 ### 1. Clone the Repository
 
@@ -151,7 +166,7 @@ cd Persian_RAG
 python -m venv venv
 ```
 
-Activate it:
+Activate the virtual environment:
 
 **Windows:**
 
@@ -197,7 +212,7 @@ Place your Persian PDF files inside:
 data/pdfs/
 ```
 
-Make sure the PDF files contain extractable text.
+The PDF files should contain extractable text. Scanned documents may require OCR before processing.
 
 ### 6. Ingest Documents
 
@@ -207,7 +222,13 @@ Run the ingestion pipeline from the project root:
 python -c "from src.main import ingest_documents; ingest_documents()"
 ```
 
-This command processes the PDF files, generates embeddings, and stores the resulting vectors in ChromaDB.
+This command:
+
+- Loads PDF documents.
+- Extracts and normalizes their text.
+- Splits the text into chunks.
+- Generates embeddings.
+- Stores the resulting vectors and metadata in ChromaDB.
 
 ### 7. Run the Application
 
@@ -225,7 +246,7 @@ http://localhost:8501
 
 ## Docker Deployment
 
-The project supports Docker to make setup and execution easier.
+The project supports Docker to simplify environment setup and application deployment.
 
 ### Prerequisites
 
@@ -242,15 +263,25 @@ Create a `.env` file in the project root and configure the required API credenti
 docker compose build
 ```
 
-### 3. Ingest PDF Documents
+### 3. Add PDF Documents
 
-Make sure your PDF files are available in `data/pdfs/`, then run:
+Place your PDF files inside:
+
+```text
+data/pdfs/
+```
+
+### 4. Ingest Documents
+
+Run the ingestion pipeline inside the Docker container:
 
 ```bash
 docker compose run --rm app python -c "from src.main import ingest_documents; ingest_documents()"
 ```
 
-### 4. Start the Application
+This processes the PDF files and stores their embeddings in the persistent ChromaDB volume.
+
+### 5. Start the Application
 
 ```bash
 docker compose up -d
@@ -262,19 +293,19 @@ Open the application:
 http://localhost:8501
 ```
 
-### 5. View Application Logs
+### 6. View Application Logs
 
 ```bash
 docker compose logs -f app
 ```
 
-### 6. Stop the Application
+### 7. Stop the Application
 
 ```bash
 docker compose down
 ```
 
-**Note:** The Docker Compose configuration uses a persistent volume for ChromaDB data. Stopping the containers does not normally remove the stored vectors.
+**Persistent Storage:** Docker Compose uses a named volume for ChromaDB data. Stopping or removing the application container does not normally delete the stored vectors.
 
 To remove the containers and persistent volumes:
 
@@ -282,7 +313,7 @@ To remove the containers and persistent volumes:
 docker compose down -v
 ```
 
-**Warning:** The `-v` option deletes the persisted ChromaDB data.
+**Warning:** The `-v` option deletes the persistent ChromaDB data.
 
 ---
 
@@ -297,11 +328,11 @@ The application uses environment variables to configure external API services.
 | `LLM_MODEL` | Name of the language model |
 | `EMBEDDING_API_URL` | Embedding service endpoint |
 
-The vector database is configured to persist its data in the `chroma_db/` directory.
+The vector database uses persistent storage in the `chroma_db/` directory.
 
 ## Example Questions and Answers
 
-The following examples demonstrate the system's question-answering capabilities using the provided Persian PDF documents.
+The following examples demonstrate the application's question-answering capabilities using the provided Persian PDF documents.
 
 ### 1. What is Artificial Intelligence?
 
@@ -379,11 +410,7 @@ The following examples demonstrate the system's question-answering capabilities 
 
 اطلاعات کافی در اسناد موجود درباره نویسنده رمان هری پاتر وجود ندارد.
 
-**Retrieved Sources:**
-
-No sufficient supporting information was available in the provided documents.
-
-**Test Objective:** Verify that the system avoids generating unsupported answers when the required information is not available in the knowledge base.
+**Test Objective:** Evaluate whether the system can avoid generating unsupported answers when the required information is not available in the provided documents.
 
 ### 5. What is Deep Learning?
 
@@ -427,11 +454,9 @@ This project is developed as an educational and technical demonstration of a Per
 ---
 
 <p align="center">
-  **Persian RAG**
+  <strong>Persian RAG</strong>
   <br>
   <sub>Making Persian documents easier to search, understand, and query.</sub>
-</p>
-
-<p align="center">
+  <br><br>
   <a href="https://github.com/ftm-hoseini/Persian_RAG">GitHub Repository</a>
 </p>
