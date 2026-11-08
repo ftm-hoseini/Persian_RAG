@@ -1,0 +1,20 @@
+
+services:
+  app:
+    build: .
+    container_name: persian-rag
+
+    ports:
+      - "8501:8501"
+
+    env_file:
+      - .env
+
+    volumes:
+      - chroma_data:/app/chroma_db
+      - ./data/pdfs:/app/data/pdfs:ro
+
+    restart: unless-stopped
+
+volumes:
+  chroma_data:
