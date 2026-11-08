@@ -9,8 +9,11 @@ EMBEDDING_API_URL = os.getenv("EMBEDDING_API_URL")
 
 def get_embedding(text: str) -> list[float]:
 
-    if not text.strip():
+    if not text or not text.strip():
         raise ValueError("Cannot generate embedding for empty text.")
+
+    if not EMBEDDING_API_URL:
+        raise ValueError("EMBEDDING_API_URL is not configured.")
 
     try:
         response = requests.post(
@@ -22,11 +25,16 @@ def get_embedding(text: str) -> list[float]:
         response.raise_for_status()
 
         result = response.json()
-
         embedding = result["data"][0]["embedding"]
 
         if not isinstance(embedding, list) or not embedding:
             raise ValueError("Invalid embedding returned by API.")
+
+        if not all(
+            isinstance(value, (int, float)) and not isinstance(value, bool)
+            for value in embedding
+        ):
+            raise ValueError("Embedding contains invalid values.")
 
         return embedding
 
@@ -37,7 +45,6 @@ def get_embedding(text: str) -> list[float]:
         raise ValueError(
             "Unexpected embedding API response format."
         ) from exc
-
 
 
 def embed_documents(chunks: list[dict]) -> list[dict]:
